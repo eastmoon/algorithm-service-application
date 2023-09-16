@@ -257,7 +257,7 @@ goto end
     IF defined ASA_COMMAND (
         echo ^> Execute : %ASA_COMMAND%
         @rem If image exist, then load image
-        docker exec -ti python.asa-%PROJECT_NAME% bash -c "python3 %ASA_COMMAND%.py"
+        docker exec -ti python.asa-%PROJECT_NAME% bash -c "python %ASA_COMMAND%.py"
     ) else (
         echo ^> Execute : command was not assign
     )
