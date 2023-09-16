@@ -1,0 +1,7 @@
+FROM python.asa:rpc
+
+# Copy RPC setting file
+ADD ./app /app
+
+# Setting
+WORKDIR /app

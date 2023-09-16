@@ -140,7 +140,7 @@ goto end
 
 :cli-dev
     echo ^> Startup and into container for develop algorithm
-    @rem build locale converter image
+    @rem build image
     cd ./conf/docker
     docker build -t python.asa:%PROJECT_ENV% -f Dockerfile.%PROJECT_ENV% .
     cd %CLI_DIRECTORY%
@@ -151,14 +151,15 @@ goto end
     )
 
     @rem execute container
+    docker rm -f python.asa-%PROJECT_NAME%
     docker run -d --rm ^
         -v %cd%\cache\data:/data ^
-        -v %cd%\src:/src ^
-        --name python.asa-%PROJECT_ENV% ^
+        -v %cd%\src:/app ^
+        --name python.asa-%PROJECT_NAME% ^
         python.asa:%PROJECT_ENV%
 
     @rem into container
-    docker exec -ti python.asa-%PROJECT_ENV% bash
+    docker exec -ti python.asa-%PROJECT_NAME% bash
     goto end
 
 :cli-dev-args
@@ -176,6 +177,34 @@ goto end
 
 :cli-pack
     echo ^> Package docker image with algorithm
+    @rem create cache
+    IF NOT EXIST cache (
+        mkdir cache
+    )
+    IF NOT EXIST cache\image (
+        mkdir cache\image
+    )
+    IF EXIST cache\pack (
+        rd /S /Q cache\pack
+    )
+    mkdir cache\pack\app
+
+    @rem build base image
+    cd ./conf/docker
+    docker build -t python.asa:rpc -f Dockerfile.rpc .
+    cd %CLI_DIRECTORY%
+
+    @rem copy dockerfile and soruce code
+    copy conf\docker\Dockerfile.pack cache\pack\Dockerfile
+    xcopy /Y /S src cache\pack\app
+
+    @rem build pack image
+    cd cache\pack
+    docker build -t python.asa:pack .
+    cd %CLI_DIRECTORY%
+
+    @rem save image
+    docker save --output cache\image\asa.tar python.asa:pack
     goto end
 
 :cli-pack-args
@@ -194,6 +223,17 @@ goto end
 
 :cli-run
     echo ^> Run package image
+    IF EXIST cache\image (
+        cd cache\image
+        docker load --input asa.tar
+        cd %CLI_DIRECTORY%
+    )
+    docker rm -f python.asa-%PROJECT_NAME%
+    docker run -d --rm ^
+        -v %cd%\cache\data:/data ^
+        -p 80:80 ^
+        --name python.asa-%PROJECT_NAME% ^
+        python.asa:pack
     goto end
 
 :cli-run-args
