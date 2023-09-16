@@ -46,7 +46,7 @@ set COMMAND_AC_AGRS=
 for %%a in ("%cd%") do (
     set PROJECT_NAME=%%~na
 )
-set PROJECT_ENV=dev
+set PROJECT_ENV=cli
 
 @rem ------------------- execute script -------------------
 
@@ -115,7 +115,7 @@ goto end
 :cli-args
     set COMMON_ARGS_KEY=%1
     set COMMON_ARGS_VALUE=%2
-    if "%COMMON_ARGS_KEY%"=="--prod" (set PROJECT_ENV=prod)
+    if "%COMMON_ARGS_KEY%"=="--rpc" (set PROJECT_ENV=rpc)
     goto end
 
 :cli-help
@@ -124,7 +124,7 @@ goto end
     echo.
     echo Options:
     echo      --help, -h        Show more information with CLI.
-    echo      --prod            Setting project environment with "prod", default is "dev"
+    echo      --rpc             Setting project environment with "RPC", default is "CLI"
     echo.
     echo Command:
     echo      dev               Startup and into container for develop algorithm.
@@ -140,6 +140,25 @@ goto end
 
 :cli-dev
     echo ^> Startup and into container for develop algorithm
+    @rem build locale converter image
+    cd ./conf/docker
+    docker build -t python.asa:%PROJECT_ENV% -f Dockerfile.%PROJECT_ENV% .
+    cd %CLI_DIRECTORY%
+
+    @rem create cache
+    IF NOT EXIST cache (
+        mkdir cache
+    )
+
+    @rem execute container
+    docker run -d --rm ^
+        -v %cd%\cache\data:/data ^
+        -v %cd%\src:/src ^
+        --name python.asa-%PROJECT_ENV% ^
+        python.asa:%PROJECT_ENV%
+
+    @rem into container
+    docker exec -ti python.asa-%PROJECT_ENV% bash
     goto end
 
 :cli-dev-args
