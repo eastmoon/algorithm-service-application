@@ -223,11 +223,14 @@ goto end
 
 :cli-run
     echo ^> Run package image
-    IF EXIST cache\image (
+    @rem If image exist, then load image
+    IF EXIST cache\image\asa.tar (
         cd cache\image
         docker load --input asa.tar
         cd %CLI_DIRECTORY%
     )
+
+    @rem execute package image
     docker rm -f python.asa-%PROJECT_NAME%
     docker run -d --rm ^
         -v %cd%\cache\data:/data ^
