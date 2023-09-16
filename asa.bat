@@ -130,6 +130,7 @@ goto end
     echo      dev               Startup and into container for develop algorithm.
     echo      pack              Package docker image with algorithm.
     echo      run               Run package image.
+    echo      exec              Execute command in container.
     echo.
     echo Run 'cli [COMMAND] --help' for more information on a command.
     goto end
@@ -248,6 +249,33 @@ goto end
     echo.
     echo Options:
     echo      --help, -h        Show more information with UP Command.
+    goto end
+
+@rem ------------------- Command "exec" method -------------------
+
+:cli-exec
+    IF defined ASA_COMMAND (
+        echo ^> Execute : %ASA_COMMAND%
+        @rem If image exist, then load image
+        docker exec -ti python.asa-%PROJECT_NAME% bash -c "python3 %ASA_COMMAND%.py"
+    ) else (
+        echo ^> Execute : command was not assign
+    )
+    goto end
+
+:cli-exec-args
+    set COMMON_ARGS_KEY=%1
+    set COMMON_ARGS_VALUE=%2
+    if "%COMMON_ARGS_KEY%"=="-c" (set ASA_COMMAND=%COMMON_ARGS_VALUE%)
+    goto end
+
+:cli-exec-help
+    echo This is a Command Line Interface with project %PROJECT_NAME%
+    echo Run package image.
+    echo.
+    echo Options:
+    echo      --help, -h        Show more information with UP Command.
+    echo      -c                When execute command, e.g -c='demo'.
     goto end
 
 @rem ------------------- End method-------------------
