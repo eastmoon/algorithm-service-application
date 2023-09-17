@@ -155,6 +155,7 @@ goto end
     docker rm -f python.asa-%PROJECT_NAME%
     docker run -d --rm ^
         -v %cd%\cache\data:/data ^
+        -v %cd%\conf\docker\cli:/usr/local/src/asa ^
         -v %cd%\src:/app ^
         --name python.asa-%PROJECT_NAME% ^
         python.asa:%PROJECT_ENV%

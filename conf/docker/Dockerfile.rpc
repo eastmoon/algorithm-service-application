@@ -22,5 +22,12 @@ RUN xargs apt-get install -y < /tmp/packages.txt
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt
 
+# Install CLI
+ADD ./cli /usr/local/src/asa
+RUN \
+    echo "bash /usr/local/src/asa/cli.sh \${@}" | tee -a /bin/asa > /dev/null && \
+    chmod 700 /bin/asa && \
+    chmod +x /usr/local/src/asa/cli.sh
+
 # Setting
 WORKDIR /app
