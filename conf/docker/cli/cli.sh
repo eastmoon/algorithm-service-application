@@ -19,7 +19,6 @@ set -e
 
 # ------------------- declare CLI file variable -------------------
 
-
 ROOT_DIRECTORY=${PWD}
 CLI_FILE=${BASH_SOURCE##*/}
 CLI_FILENAME=${CLI_FILE%.*}
@@ -39,10 +38,16 @@ SHOW_HELP=
 
 # ------------------- declare variable -------------------
 
+# Declare command line interface variable
 PROJECT_NAME=${PWD##*/}
-PROJECT_ENV="dev"
+
+# Import attribute variable
+[ -e ${CLI_DIRECTORY}/conf/attributes.sh ] && source ${CLI_DIRECTORY}/conf/attributes.sh
 
 # ------------------- declare function -------------------
+
+# Import library function
+[ -e ${CLI_DIRECTORY}/conf/utils.sh ] && source ${CLI_DIRECTORY}/conf/utils.sh
 
 # Command Parser
 function main() {
@@ -183,13 +188,7 @@ function cli() {
 }
 
 function cli-args() {
-    key=${1}
-    value=${2}
-    case ${key} in
-        "--prod")
-            PROJECT_ENV="prod"
-            ;;
-    esac
+    return 0
 }
 
 function cli-help() {
