@@ -2,7 +2,19 @@
 
 # Declare function
 function action {
-    echo "> Exec : ${@}"
+    # Declare variable
+    EXEC_COMMAND=(${@})
+    EXEC_ALOG=${EXEC_COMMAND[0]}
+    EXEC_PARAM=${EXEC_COMMAND[@]:1}
+    if [ -e ${APP_A_DIR}/${EXEC_ALOG}.py ];
+    then
+        desc="Exec algorithm : ${EXEC_ALOG}"
+        [ "${EXEC_PARAM}" != "" ] && desc="${desc} ( ${EXEC_PARAM} )"
+        echo-i "${desc}"
+        python ${APP_A_DIR}/${EXEC_ALOG}.py ${EXEC_PARAM}
+    else
+        echo-w "Target algorithm ${EXEC_ALOG} is not exit."
+    fi
 }
 
 function args {
@@ -10,12 +22,11 @@ function args {
 }
 
 function short {
-    echo "Execute some action"
+    echo "Execute algorithm"
 }
 
 function help {
-    echo "This is a Command Line Interface with project ${PROJECT_NAME}"
-    echo "Execute some action"
+    echo "Execute algorithm in '${APP_A_DIR}'"
     echo ""
     echo "Options:"
     echo "    --help, -h        Show more information with UP Command."
