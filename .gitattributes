@@ -1,5 +1,5 @@
 # Auto detect text files and perform LF normalization
-*       text=auto
+*       text=auto eol=lf
 *.ini   text eol=crlf
 *.bat   text eol=crlf
 *.sh    text eol=lf
@@ -8,4 +8,5 @@
 *.jade  eol=lf
 *.html  eol=lf
 *.css   eol=lf
+*.py    eol=lf
 *.py    eol=lf
