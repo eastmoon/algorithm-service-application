@@ -60,6 +60,7 @@ asa.bat run
 ```
 asa.bat exec -c="command"
 ```
+> 若命令間有空白請用 "_" 替代，如 ```asa.bat exec -c="command_param1_parame2"
 
 ## 演算測試
 

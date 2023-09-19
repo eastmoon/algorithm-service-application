@@ -258,10 +258,10 @@ goto end
 @rem ------------------- Command "exec" method -------------------
 
 :cli-exec
+    @rem If execute command exist, then execute cli with command
     IF defined ASA_COMMAND (
-        echo ^> Execute : %ASA_COMMAND%
-        @rem If image exist, then load image
-        docker exec -ti python.asa-%PROJECT_NAME% bash -c "python %ASA_COMMAND%.py"
+        @rem Parser command "_" character to " " character.
+        docker exec -ti python.asa-%PROJECT_NAME% bash -c "asa exec %ASA_COMMAND:_= %"
     ) else (
         echo ^> Execute : command was not assign
     )
