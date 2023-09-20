@@ -5,7 +5,8 @@ import os
 import sys
 import json
 import re
-import cgi
+import time
+import subprocess
 
 # Declare function
 def parser_request_info():
@@ -25,40 +26,27 @@ def parser_request_info():
 
 def parser_restful_info(url):
     # Regex for get the related fields from URL
-    url_pattern = r'/(?P<api>\w+)/(?P<id>[0-9]+)/(?P<name>\w+)$'
+    url_pattern = r'/(?P<api>\w+)(?P<cmd>\/?\w*)(?P<op>.*)$'
     return re.match(url_pattern, url).groupdict()
 
-def response(status, message):
-    result = {
-        "status": status,
-        "message": message
-    }
-    print "Content-type: application/json"
-    print ""
-    print json.dumps(result)
+def response(status, info):
+    print("Content-type: application/json")
+    print("")
+    #print(json.dumps(info['req']))
+    #print(json.dumps(info['restful']))
+    print("")
+    if info['restful'] != None and info['restful']['api'] != None and info['restful']['cmd'] != None:
+        c = info['restful']['cmd'].replace("/", "")
+        o = info['restful']['op'].replace("/", " ") if info['restful']['op'] != None else ""
+        t = time.time()
+        #print("asa --disable-color {0}{1} > /tmp/{2}.asa".format(c, o, t))
+        subprocess.run(["asa --disable-color {0}{1} > /tmp/{2}.asa".format(c, o, t)], shell=True)
+        f = open("/tmp/{0}.asa".format(t), "r")
+        print(f.read())
+        subprocess.run(["rm /tmp/{0}.asa".format(t)], shell=True)
+    else:
+        print("Input parameter error.")
 
-def call_get(info):
-    return {
-        "text": "Call GET method, and retrieve information.",
-        "body": info
-    }
-
-def call_post(info):
-    return {
-        "text": "Call POST method, new information with body.",
-        "body": info["req"]["CONTENT"]
-    }
-
-def call_put(info):
-    return {
-        "text": "Call PUT method, update information with body.",
-        "body": info["req"]["CONTENT"]
-    }
-
-def call_del(info):
-    return "Call DELETE method, and remove information."
-
-switch = {"GET": call_get, "POST": call_post, "PUT": call_put, "DELETE": call_del}
 # Execute script
 try:
     req = parser_request_info()
@@ -66,6 +54,8 @@ try:
         "restful": parser_restful_info(req["SCRIPT_NAME"]),
         "req": req
     }
-    response("success", switch[req["REQUEST_METHOD"]](info))
+    response("success", info)
 except Exception as e:
-    response("error", e.args[0])
+    print("Content-type: application/json")
+    print("")
+    print(e.args[0])
