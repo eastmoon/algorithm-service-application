@@ -143,6 +143,9 @@ function common-args() {
         "-h")
             SHOW_HELP=1
             ;;
+        "--disable-color")
+            CLI_DISABLE_COLOR=1
+            ;;
     esac
 }
 
@@ -192,11 +195,12 @@ function cli-args() {
 }
 
 function cli-help() {
-    echo "This is a docker control script with project ${PROJECT_NAME}"
+    echo "This is a command line interface for algorithm service project."
     echo "If not input any command, at default will show HELP"
     echo ""
     echo "Options:"
     echo "    --help, -h        Show more information with CLI."
+    echo "    --disable-color   Disable use color code when echo message."
     command-description
 }
 
