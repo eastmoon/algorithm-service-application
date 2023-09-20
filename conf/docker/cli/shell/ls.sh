@@ -1,8 +1,10 @@
+#@STOP-CLI-PARSER
+
 # Declare variable
 
 # Declare function
 function action {
-    echo -e "\033[36mAlgorithm list:\033[0m"
+    echo-c "\033[36m" "\033[0m" Algorithm list:
     for file in $(find ${APP_A_DIR} -type f -iname "*.py");
     do
         algo=${file##*/}

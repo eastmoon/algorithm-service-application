@@ -1,3 +1,5 @@
+#@STOP-CLI-PARSER
+
 # Declare variable
 CLI_APP_VAR_FILE=${CLI_DIRECTORY}/conf/attributes.sh
 CLI_STATUS_ENV_TMP_FILE=${CLI_DIRECTORY}/.statusenvtmp
@@ -14,7 +16,7 @@ function action {
                 do
                     if [[ ${line} =~ '#' ]]
                     then
-                        echo -e "\033[36m${line}\033[0m"
+                        echo-c "\033[36m" "\033[0m" ${line}
                     else
                         ev=${line%=*}
                         printf "%-20s=  %-60s\n" ${line%=*} ${!ev}

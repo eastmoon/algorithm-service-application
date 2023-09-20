@@ -1,6 +1,6 @@
 ## Colorful echo
 function echo-a() {
-    echo -e "\033[90m[`date -Iseconds`]\033[0m ${@}"
+    [ -z ${CLI_DISABLE_COLOR} ] && echo -e "\033[90m[`date -Iseconds`]\033[0m ${@}" || echo -e "[`date -Iseconds`] ${@}"
     if [ ! -z ${CLI_LOG_FILE_ERR} ] && [ -e ${CLI_LOG_FILE_ERR} ];
     then
         echo -e "[`date -Iseconds`] ${@}" >> ${CLI_LOG_FILE_ERR}
@@ -15,16 +15,17 @@ function echo-a() {
     fi
 }
 
-function echo-e() {
-    echo -e "\033[31m[`date -Iseconds`]\033[0m ${@}"
-    if [ ! -z ${CLI_LOG_FILE_ERR} ] && [ -e ${CLI_LOG_FILE_ERR} ];
-    then
-        echo -e "[`date -Iseconds`] ${@}" >> ${CLI_LOG_FILE_ERR}
-    fi
+function echo-c() {
+    cs=${1}
+    ce=${2}
+    msg=(${@})
+    msg=${msg[@]:2}
+    [ -z ${CLI_DISABLE_COLOR} ] && echo -e "${cs}${msg}${ce}" || echo -e "${msg}"
+
 }
 
 function echo-i() {
-    echo -e "\033[32m[`date -Iseconds`]\033[0m ${@}"
+    [ -z ${CLI_DISABLE_COLOR} ] && echo -e "\033[32m[`date -Iseconds`]\033[0m ${@}" || echo -e "[`date -Iseconds`] ${@}"
     if [ ! -z ${CLI_LOG_FILE_INFO} ] && [ -e ${CLI_LOG_FILE_INFO} ];
     then
         echo -e "[`date -Iseconds`] ${@}" >> ${CLI_LOG_FILE_INFO}
@@ -32,10 +33,18 @@ function echo-i() {
 }
 
 function echo-w() {
-    echo -e "\033[33m[`date -Iseconds`]\033[0m ${@}"
+    [ -z ${CLI_DISABLE_COLOR} ] && echo -e "\033[33m[`date -Iseconds`]\033[0m ${@}" || echo -e "[`date -Iseconds`] ${@}"
     if [ ! -z ${CLI_LOG_FILE_WARN} ] && [ -e ${CLI_LOG_FILE_WARN} ];
     then
         echo -e "[`date -Iseconds`] ${@}" >> ${CLI_LOG_FILE_WARN}
+    fi
+}
+
+function echo-e() {
+    [ -z ${CLI_DISABLE_COLOR} ] && echo -e "\033[31m[`date -Iseconds`]\033[0m ${@}" || echo -e "[`date -Iseconds`] ${@}"
+    if [ ! -z ${CLI_LOG_FILE_ERR} ] && [ -e ${CLI_LOG_FILE_ERR} ];
+    then
+        echo -e "[`date -Iseconds`] ${@}" >> ${CLI_LOG_FILE_ERR}
     fi
 }
 
