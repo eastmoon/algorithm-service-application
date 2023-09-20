@@ -20,7 +20,7 @@
         $(document).ready(() => {
             console.log("Call Remote Procedure Call 'api.py'");
             $.ajax({
-                url: location.origin + "/rpc/demo",
+                url: location.origin + "/cgi/demo",
                 success: (result) => {
                     $("#content").html(JSON.stringify(result));
                 },

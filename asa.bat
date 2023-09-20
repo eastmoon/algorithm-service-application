@@ -157,7 +157,7 @@ goto end
         -v %cd%\cache\data:/data ^
         -v %cd%\conf\docker\cli:/usr/local/src/asa ^
         -v %cd%\conf\docker\rpc\nginx\html:/usr/share/nginx/html ^
-        -v %cd%\conf\docker\rpc\nginx\cgi:/usr/share/nginx/rpc ^
+        -v %cd%\conf\docker\rpc\nginx\cgi:/usr/share/nginx/cgi ^
         -v %cd%\src:/app ^
         -p 8080:80 ^
         --name python.asa-%PROJECT_NAME% ^

@@ -21,6 +21,8 @@ RUN pip install -r /tmp/requirements.txt
 # Install RPC
 ADD ./rpc/99-start-fcgiwrap.sh /docker-entrypoint.d/99-start-fcgiwrap.sh
 ADD ./rpc/default.conf /etc/nginx/conf.d/default.conf
+ADD ./rpc/nginx/html /usr/share/nginx/html
+ADD ./rpc/nginx/cgi /usr/share/nginx/cgi
 
 # Install CLI
 ADD ./cli /usr/local/src/asa

@@ -5,7 +5,7 @@ import sys
 import json
 
 # Response
-result = {'v1':'aaa','v2':'bbb','v3':'ccc'};
+result = {'key1':'value_str','key2':12345678,'key3':"value_str"};
 
 print("Content-type: application/json")
 print("")
