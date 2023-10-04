@@ -128,6 +128,7 @@ goto end
     echo.
     echo Command:
     echo      dev               Startup and into container for develop algorithm.
+    echo      into              Going to container.
     echo      pack              Package docker image with algorithm.
     echo      run               Run package image.
     echo      ls                List all algorithm in application.
