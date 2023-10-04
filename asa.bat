@@ -156,6 +156,7 @@ goto end
     docker rm -f asa-%PROJECT_NAME%
     docker run -d --rm ^
         -v %cd%\cache\data:/data ^
+        -v %cd%\cache\task:/task ^
         -v %cd%\conf\docker\cli:/usr/local/src/asa ^
         -v %cd%\conf\docker\rpc\nginx\html:/usr/share/nginx/html ^
         -v %cd%\conf\docker\rpc\nginx\cgi:/usr/share/nginx/cgi ^
@@ -174,6 +175,24 @@ goto end
 :cli-dev-help
     echo This is a Command Line Interface with project %PROJECT_NAME%
     echo Startup and into container for develop algorithm.
+    echo.
+    echo Options:
+    echo      --help, -h        Show more information with UP Command.
+    goto end
+
+@rem ------------------- Command "into" method -------------------
+
+:cli-into
+    @rem into container
+    docker exec -ti asa-%PROJECT_NAME% bash
+    goto end
+
+:cli-into-args
+    goto end
+
+:cli-into-help
+    echo This is a Command Line Interface with project %PROJECT_NAME%
+    echo Going to container asa-%PROJECT_NAME%.
     echo.
     echo Options:
     echo      --help, -h        Show more information with UP Command.
