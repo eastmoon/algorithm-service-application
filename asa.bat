@@ -223,7 +223,7 @@ goto end
 
     @rem copy dockerfile and soruce code
     copy conf\docker\Dockerfile.pack cache\pack\Dockerfile
-    xcopy /Y /S src cache\pack\app
+    xcopy /Y /S app cache\pack\app
 
     @rem build pack image
     cd cache\pack
