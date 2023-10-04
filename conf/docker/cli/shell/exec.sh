@@ -15,7 +15,7 @@ function action {
     then
         EXEC_ALOG_PATH=${APP_A_DIR}/${EXEC_ALOG}/main.py
     fi
-    ## If algorithm exist, execute python file with EXEC_ALOG_PATH variable 
+    ## If algorithm exist, execute python file with EXEC_ALOG_PATH variable
     if [ ! -z ${EXEC_ALOG_PATH} ];
     then
         desc="Exec algorithm : ${EXEC_ALOG}"
@@ -23,7 +23,7 @@ function action {
         echo-i "${desc}"
         python ${EXEC_ALOG_PATH} ${EXEC_PARAM}
     else
-        echo-w "Target algorithm ${EXEC_ALOG} is not exit."
+        echo-w "Target algorithm ${EXEC_ALOG} was not find."
     fi
 }
 
