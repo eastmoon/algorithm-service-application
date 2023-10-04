@@ -130,7 +130,8 @@ goto end
     echo      dev               Startup and into container for develop algorithm.
     echo      pack              Package docker image with algorithm.
     echo      run               Run package image.
-    echo      exec              Execute command in container.
+    echo      ls                List all algorithm in application.
+    echo      exec              Execute algorithm.
     echo.
     echo Run 'cli [COMMAND] --help' for more information on a command.
     goto end
@@ -143,7 +144,7 @@ goto end
     echo ^> Startup and into container for develop algorithm
     @rem build image
     cd ./conf/docker
-    docker build -t python.asa:%PROJECT_ENV% -f Dockerfile.%PROJECT_ENV% .
+    docker build -t asa.%PROJECT_NAME%:%PROJECT_ENV% -f Dockerfile.%PROJECT_ENV% .
     cd %CLI_DIRECTORY%
 
     @rem create cache
@@ -152,7 +153,7 @@ goto end
     )
 
     @rem execute container
-    docker rm -f python.asa-%PROJECT_NAME%
+    docker rm -f asa-%PROJECT_NAME%
     docker run -d --rm ^
         -v %cd%\cache\data:/data ^
         -v %cd%\conf\docker\cli:/usr/local/src/asa ^
@@ -160,11 +161,11 @@ goto end
         -v %cd%\conf\docker\rpc\nginx\cgi:/usr/share/nginx/cgi ^
         -v %cd%\src:/app ^
         -p 8080:80 ^
-        --name python.asa-%PROJECT_NAME% ^
-        python.asa:%PROJECT_ENV%
+        --name asa-%PROJECT_NAME% ^
+        asa.%PROJECT_NAME%:%PROJECT_ENV%
 
     @rem into container
-    docker exec -ti python.asa-%PROJECT_NAME% bash
+    docker exec -ti asa-%PROJECT_NAME% bash
     goto end
 
 :cli-dev-args
@@ -195,8 +196,9 @@ goto end
     mkdir cache\pack\app
 
     @rem build base image
+    set PROJECT_ENV=rpc
     cd ./conf/docker
-    docker build -t python.asa:rpc -f Dockerfile.rpc .
+    docker build -t asa.%PROJECT_NAME%:%PROJECT_ENV% -f Dockerfile.%PROJECT_ENV% .
     cd %CLI_DIRECTORY%
 
     @rem copy dockerfile and soruce code
@@ -205,11 +207,15 @@ goto end
 
     @rem build pack image
     cd cache\pack
-    docker build -t python.asa:pack .
+    docker build ^
+      -t asa.%PROJECT_NAME%:latest ^
+      --build-arg PACK_PROJECT=%PROJECT_NAME% ^
+      --build-arg PACK_ENV=%PROJECT_ENV% ^
+      .
     cd %CLI_DIRECTORY%
 
     @rem save image
-    docker save --output cache\image\asa.tar python.asa:pack
+    docker save --output cache\image\asa.%PROJECT_NAME%.tar asa.%PROJECT_NAME%:latest
     goto end
 
 :cli-pack-args
@@ -229,19 +235,19 @@ goto end
 :cli-run
     echo ^> Run package image
     @rem If image exist, then load image
-    IF EXIST cache\image\asa.tar (
+    IF EXIST cache\image\asa.%PROJECT_NAME%.tar (
         cd cache\image
-        docker load --input asa.tar
+        docker load --input asa.%PROJECT_NAME%.tar
         cd %CLI_DIRECTORY%
     )
 
     @rem execute package image
-    docker rm -f python.asa-%PROJECT_NAME%
+    docker rm -f asa-%PROJECT_NAME%
     docker run -d --rm ^
         -v %cd%\cache\data:/data ^
         -p 80:80 ^
-        --name python.asa-%PROJECT_NAME% ^
-        python.asa:pack
+        --name asa-%PROJECT_NAME% ^
+        asa.%PROJECT_NAME%:latest
     goto end
 
 :cli-run-args
@@ -255,13 +261,31 @@ goto end
     echo      --help, -h        Show more information with UP Command.
     goto end
 
+@rem ------------------- Command "ls" method -------------------
+
+:cli-ls
+    @rem Call ASA list command
+    docker exec -ti asa-%PROJECT_NAME% bash -c "asa ls"
+    goto end
+
+:cli-ls-args
+    goto end
+
+:cli-ls-help
+    echo This is a Command Line Interface with project %PROJECT_NAME%
+    echo List all algorithm in application.
+    echo.
+    echo Options:
+    echo      --help, -h        Show more information with UP Command.
+    goto end
+
 @rem ------------------- Command "exec" method -------------------
 
 :cli-exec
     @rem If execute command exist, then execute cli with command
     IF defined ASA_COMMAND (
         @rem Parser command "_" character to " " character.
-        docker exec -ti python.asa-%PROJECT_NAME% bash -c "asa exec %ASA_COMMAND:_= %"
+        docker exec -ti asa-%PROJECT_NAME% bash -c "asa exec %ASA_COMMAND:_= %"
     ) else (
         echo ^> Execute : command was not assign
     )
@@ -275,11 +299,11 @@ goto end
 
 :cli-exec-help
     echo This is a Command Line Interface with project %PROJECT_NAME%
-    echo Run package image.
+    echo Execute algorithm.
     echo.
     echo Options:
     echo      --help, -h        Show more information with UP Command.
-    echo      -c                When execute command, e.g -c='demo'.
+    echo      -c                Execute algorithm string, e.g -c='demo_param1_param2'.
     goto end
 
 @rem ------------------- End method-------------------
