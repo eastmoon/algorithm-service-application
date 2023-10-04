@@ -6,12 +6,22 @@ function action {
     EXEC_COMMAND=(${@})
     EXEC_ALOG=${EXEC_COMMAND[0]}
     EXEC_PARAM=${EXEC_COMMAND[@]:1}
+    EXEC_ALOG_PATH=
+    ## Check target algorithm is exist.
     if [ -e ${APP_A_DIR}/${EXEC_ALOG}.py ];
+    then
+        EXEC_ALOG_PATH=${APP_A_DIR}/${EXEC_ALOG}.py
+    elif [ -e ${APP_A_DIR}/${EXEC_ALOG}/main.py ];
+    then
+        EXEC_ALOG_PATH=${APP_A_DIR}/${EXEC_ALOG}/main.py
+    fi
+    ## If algorithm exist, execute python file with EXEC_ALOG_PATH variable 
+    if [ ! -z ${EXEC_ALOG_PATH} ];
     then
         desc="Exec algorithm : ${EXEC_ALOG}"
         [ "${EXEC_PARAM}" != "" ] && desc="${desc} ( ${EXEC_PARAM} )"
         echo-i "${desc}"
-        python ${APP_A_DIR}/${EXEC_ALOG}.py ${EXEC_PARAM}
+        python ${EXEC_ALOG_PATH} ${EXEC_PARAM}
     else
         echo-w "Target algorithm ${EXEC_ALOG} is not exit."
     fi
