@@ -2,4 +2,4 @@
 
 echo Content-Type: text; charset=utf-8
 echo
-echo cgi working
+echo nginx fastcgi working
