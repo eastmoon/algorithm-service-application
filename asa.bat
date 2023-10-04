@@ -157,11 +157,11 @@ goto end
     docker rm -f asa-%PROJECT_NAME%
     docker run -d --rm ^
         -v %cd%\cache\data:/data ^
-        -v %cd%\cache\task:/task ^
         -v %cd%\conf\docker\cli:/usr/local/src/asa ^
         -v %cd%\conf\docker\rpc\nginx\html:/usr/share/nginx/html ^
         -v %cd%\conf\docker\rpc\nginx\cgi:/usr/share/nginx/cgi ^
-        -v %cd%\src:/app ^
+        -v %cd%\task:/task ^
+        -v %cd%\app:/app ^
         -p 8080:80 ^
         --name asa-%PROJECT_NAME% ^
         asa.%PROJECT_NAME%:%PROJECT_ENV%
