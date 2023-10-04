@@ -323,7 +323,7 @@ goto end
     echo.
     echo Options:
     echo      --help, -h        Show more information with UP Command.
-    echo      -c                Execute algorithm string, e.g -c='demo_param1_param2'.
+    echo      -c                Execute algorithm string, e.g -c=demo_param1_param2.
     goto end
 
 @rem ------------------- End method-------------------
