@@ -16,7 +16,7 @@ function action {
     then
         desc="Exec task : ${EXEC_TASK}"
         echo-i "${desc}"
-        python ${CLI_SHELL_DIRECTORY}/task/run.py ${EXEC_ALOG_PATH}
+        python ${CLI_SHELL_DIRECTORY}/task/run.py ${EXEC_ALOG_PATH} ${CLI_DISABLE_COLOR}
     else
         echo-w "Target task ${EXEC_ALOG} was not find."
     fi

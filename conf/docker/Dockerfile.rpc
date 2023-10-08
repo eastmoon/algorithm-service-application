@@ -10,6 +10,12 @@ RUN apt-get install -y --no-install-recommends \
         python-is-python3 \
         fcgiwrap
 
+# Update python package manager
+RUN pip install --upgrade pip
+
+# Install yaml parser tools
+RUN pip install pyyaml
+
 # Install linux packages
 COPY packages.txt /tmp/packages.txt
 RUN xargs apt-get install -y < /tmp/packages.txt
