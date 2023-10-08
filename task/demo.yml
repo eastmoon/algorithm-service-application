@@ -1,0 +1,5 @@
+name: DEMO task
+algo:
+  name: add
+  param: 1 2
+result: demo-task
