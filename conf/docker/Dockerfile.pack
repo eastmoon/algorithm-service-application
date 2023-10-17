@@ -1,4 +1,6 @@
-FROM python.asa:rpc
+ARG PACK_PROJECT
+ARG PACK_ENV
+FROM asa.${PACK_PROJECT}:${PACK_ENV}
 
 # Copy RPC setting file
 ADD ./app /app
