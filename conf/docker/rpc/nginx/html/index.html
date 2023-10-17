@@ -10,19 +10,18 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   </head>
   <body>
-    <h1>Welcome to Python CGI demo!</h1>
-    <p>If you see this page, the web server is successfully installed and
-    working. Further configuration is required.</p>
-    <h1>It is Remote Procedure Call demo result:</h1>
-    <p id="content"></p>
+    <h1>Welcome to algorithm service CGI information page!</h1>
+    <p>If you see this page, the web server is successfully installed and working. The server information down below.</p>
+    <h1></h1>
+    <pre id="content"></pre>
   </body>
   <script>
         $(document).ready(() => {
             console.log("Call Remote Procedure Call 'api.py'");
             $.ajax({
-                url: location.origin + "/cgi/demo",
+                url: location.origin + "/cgi/info",
                 success: (result) => {
-                    $("#content").html(JSON.stringify(result));
+                    $("#content").html(JSON.stringify(result, null, 2));
                 },
                 error: (msg) => {
                     console.log(msg);
