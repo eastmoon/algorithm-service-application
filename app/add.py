@@ -1,3 +1,8 @@
+#@PARAME Parame1 Parame2
+#@DESC 這是加法演算法
+#@DESC Parame1 是第一個數值
+#@DESC Parame2 是第二個數值
+
 import sys
 import numpy as np
 
