@@ -25,7 +25,10 @@ COPY requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt
 
 # Install RPC
+ENV NGINX_MAX_CGI_SOCK=5
+ENV NGINX_MAX_CLIMQ_SOCK=5
 ADD ./rpc/99-start-fcgiwrap.sh /docker-entrypoint.d/99-start-fcgiwrap.sh
+ADD ./rpc/99-start-climq.sh /docker-entrypoint.d/99-start-climq.sh
 ADD ./rpc/default.conf /etc/nginx/conf.d/default.conf
 ADD ./rpc/nginx/html /usr/share/nginx/html
 ADD ./rpc/nginx/cgi /usr/share/nginx/cgi
