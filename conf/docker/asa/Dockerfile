@@ -56,7 +56,13 @@ FROM cli AS api
 
 # Install FastAPI
 RUN pip install \
-    fastapi
+    fastapi \
+    uvicorn[standard]
+
+# Install API server
+ADD ./api/docker-entrypoint.sh /docker-entrypoint.sh
+ADD ./api/server /usr/local/fastapi
+RUN chmod +rx /docker-entrypoint.sh
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["apiserver"]

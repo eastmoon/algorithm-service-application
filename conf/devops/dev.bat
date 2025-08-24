@@ -46,16 +46,28 @@ goto end
             call :action-remove
 
             @rem execute container
-            docker run -d ^
-                -v %cd%\cache\data:/data ^
-                -v %cd%\conf\docker\asa\cli:/usr/local/src/asa ^
-                -v %cd%\conf\docker\asa\cgi\nginx\html:/usr/share/nginx/html ^
-                -v %cd%\conf\docker\asa\cgi\nginx\cgi:/usr/share/nginx/cgi ^
-                -v %cd%\task:/task ^
-                -v %cd%\app:/app ^
-                -p 8080:80 ^
-                --name %DOCKER_CONTAINER_NAME% ^
-                asa.%PROJECT_NAME%:%PROJECT_ENV% %TARGET_PROJECT_COMMAND%
+            if "%PROJECT_ENV%"=="api" (
+                docker run -d ^
+                    -v %cd%\cache\data:/data ^
+                    -v %cd%\conf\docker\asa\cli:/usr/local/src/asa ^
+                    -v %cd%\conf\docker\asa\api\server:/usr/local/fastapi ^
+                    -v %cd%\task:/task ^
+                    -v %cd%\app:/app ^
+                    -p 8080:80 ^
+                    --name %DOCKER_CONTAINER_NAME% ^
+                    asa.%PROJECT_NAME%:%PROJECT_ENV% %TARGET_PROJECT_COMMAND%
+            ) else (
+                docker run -d ^
+                    -v %cd%\cache\data:/data ^
+                    -v %cd%\conf\docker\asa\cli:/usr/local/src/asa ^
+                    -v %cd%\conf\docker\asa\cgi\nginx\html:/usr/share/nginx/html ^
+                    -v %cd%\conf\docker\asa\cgi\nginx\cgi:/usr/share/nginx/cgi ^
+                    -v %cd%\task:/task ^
+                    -v %cd%\app:/app ^
+                    -p 8080:80 ^
+                    --name %DOCKER_CONTAINER_NAME% ^
+                    asa.%PROJECT_NAME%:%PROJECT_ENV% %TARGET_PROJECT_COMMAND%
+            )
         )
     )
     goto end
@@ -64,6 +76,7 @@ goto end
     set COMMON_ARGS_KEY=%1
     set COMMON_ARGS_VALUE=%2
     if "%COMMON_ARGS_KEY%"=="--cgi" (set PROJECT_ENV=cgi)
+    if "%COMMON_ARGS_KEY%"=="--api" (set PROJECT_ENV=api)
     if "%COMMON_ARGS_KEY%"=="--stop" (set TARGET_PROJECT_STOP=true)
     if "%COMMON_ARGS_KEY%"=="--into" (set TARGET_PROJECT_COMMAND=bash)
     goto end
