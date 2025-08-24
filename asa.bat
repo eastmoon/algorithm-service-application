@@ -18,6 +18,9 @@
 setlocal
 setlocal enabledelayedexpansion
 
+@rem Command Prompt use UTF-8 code.
+chcp 65001
+
 @rem ------------------- declare CLI file variable -------------------
 @rem retrieve project name
 @rem Ref : https://www.robvanderwoude.com/ntfor.php
@@ -33,6 +36,7 @@ set CLI_DIRECTORY=%~dp0
 set CLI_FILE=%~n0%~x0
 set CLI_FILENAME=%~n0
 set CLI_FILEEXTENSION=%~x0
+set CLI_SHELL_DIRECTORY=%CLI_DIRECTORY%conf\devops
 
 @rem ------------------- declare CLI variable -------------------
 
@@ -40,58 +44,124 @@ set BREADCRUMB=cli
 set COMMAND=
 set COMMAND_BC_AGRS=
 set COMMAND_AC_AGRS=
+set SHELL_FILE=
+set SHOW_HELP=
 
 @rem ------------------- declare variable -------------------
 
 for %%a in ("%cd%") do (
     set PROJECT_NAME=%%~na
 )
-set PROJECT_ENV=cli
 
 @rem ------------------- execute script -------------------
 
+call :ini-parser
+call :rc-parser
 call :main %*
 goto end
 
 @rem ------------------- declare function -------------------
 
+@rem Command-line-interface main entrypoint.
 :main
+    @rem clear variable
     set COMMAND=
     set COMMAND_BC_AGRS=
     set COMMAND_AC_AGRS=
+    set SHELL_FILENAME=
+
+    @rem Parse assign variable which input into main function
+    @rem It will parse input assign variable and stop at first command ( COMMAND ), and re-group two list variable, option list before command ( COMMAND_BC_AGRS ), option list after command ( COMMAND_AC_AGRS ).
     call :argv-parser %*
-    call :main-args-parser %COMMAND_BC_AGRS%
+
+    @rem Run main function option, which option control come from "option list before command" ( COMMAND_BC_AGRS ).
+    call :main-args %COMMAND_BC_AGRS%
+
+    @rem Execute command
     IF defined COMMAND (
+        @rem If exist command, then re-group breadcrumb that is a string struct by command.
         set BREADCRUMB=%BREADCRUMB%-%COMMAND%
-        findstr /bi /c:":!BREADCRUMB!" %CLI_FILE% >nul 2>&1
-        IF errorlevel 1 (
-            goto cli-help
+
+        @rem Retrieve next shell filename.
+        for /f "tokens=1,* delims=-" %%p in ("!BREADCRUMB!") do ( set SHELL_FILENAME=%%q )
+
+        @rem And if exist a shell file has a name same with breadcrumb, then it is a target file we need to run.
+        dir %CLI_SHELL_DIRECTORY%\!SHELL_FILENAME: =!.bat /b >nul 2>&1
+        if errorlevel 1 (
+            @rem If not exist next shell file, then show help content which in cli file or current shell file
+            if defined SHELL_FILE ( call %SHELL_FILE% help ) else ( call :%BREADCRUMB%-help )
         ) else (
-            call :main %COMMAND_AC_AGRS%
+            @rem Generate shell file full path.
+            set SHELL_FILE=%CLI_SHELL_DIRECTORY%\!SHELL_FILENAME: =!.bat
+
+            @rem Run main function attribute option, which option control come from shell file attribute ( ::@ATTRIBUTE=VALUE ).
+            call :main-attr
+
+            @rem If attribute ( stop-cli-parser ) not exist, then run main function with "option list after command" ( COMMAND_AC_AGRS ).
+            @rem Main function will run at nested structure, it will search full command breadcrumb come from use input assign variable.
+            @rem
+            @rem If attribute ( stop-cli-parser ) exist, it mean stop search full command breadcrumb,
+            @rem and execute current shell file, and "option list after command" ( COMMAND_AC_AGRS ) become shell file assign variable .
+            if not defined ATTR_STOP_CLI_PARSER (
+                call :main %COMMAND_AC_AGRS%
+            ) else (
+                @rem setting command and clear command variable
+                set FULL_COMMAND=%COMMAND_AC_AGRS%
+                set COMMAND=
+                set COMMAND_BC_AGRS=
+                set COMMAND_AC_AGRS=
+
+                @rem make sure FULL_COMMAND not exist --help before assign command string
+                @rem e.g '--help 1234' it will call command help
+                @rem e.g '1234 --help' it will call command and pass FULL_COMMAND string
+                call :argv-parser !FULL_COMMAND!
+                call :main-args !COMMAND_BC_AGRS!
+                call :main-exec !FULL_COMMAND!
+            )
         )
     ) else (
-        call :%BREADCRUMB%
+        @rem If not exist command, it mean current main function input assign variable only have option, current breadcrumb variable was struct by full command,
+        @rem then execute function ( in cli or shell file ) with breadcrumb variable.
+        call :main-exec
     )
     goto end
 
-:main-args-parser
+@rem Main function, args running function.
+:main-args
+    @rem Use recursion to parser each option.
     for /f "tokens=1*" %%p in ("%*") do (
         for /f "tokens=1,2 delims==" %%i in ("%%p") do (
-            call :%BREADCRUMB%-args %%i %%j
+            if defined SHELL_FILE ( call %SHELL_FILE% args %%i %%j ) else ( call :%BREADCRUMB%-args %%i %%j )
             call :common-args %%i %%j
         )
-        call :main-args-parser %%q
+        call :main-args %%q
     )
     goto end
 
-:common-args
-    set COMMON_ARGS_KEY=%1
-    set COMMON_ARGS_VALUE=%2
-    if "%COMMON_ARGS_KEY%"=="-h" (set BREADCRUMB=%BREADCRUMB%-help)
-    if "%COMMON_ARGS_KEY%"=="--help" (set BREADCRUMB=%BREADCRUMB%-help)
+@rem Main function, attribute running function.
+:main-attr
+    for /f "tokens=1" %%p in ('findstr /bi /c:"::@" %SHELL_FILE%') do (
+        for /f "tokens=1,2 delims==" %%i in ("%%p") do (
+            set ATT_NAME=%%i
+            set ATT_VALUE=%%j
+            call :common-attr !ATT_NAME:::@=! !ATT_VALUE!
+        )
+    )
     goto end
 
+@ Main function, target function execute.
+:main-exec
+    if defined SHELL_FILE (
+        if defined SHOW_HELP ( call %SHELL_FILE% help ) else ( call %SHELL_FILE% action %* )
+    ) else (
+        if defined SHOW_HELP ( call :%BREADCRUMB%-help ) else ( call :%BREADCRUMB% )
+    )
+    goto end
+
+@rem Parse args variable
+@rem it will search input assign variable, then find first command ( COMMAND ), option list before command ( COMMAND_BC_AGRS ), and option list after command ( COMMAND_AC_AGRS ).
 :argv-parser
+    @rem Use recursion to find command and args.
     for /f "tokens=1*" %%p in ("%*") do (
         IF NOT defined COMMAND (
             echo %%p | findstr /r "\-" >nul 2>&1
@@ -107,224 +177,85 @@ goto end
     )
     goto end
 
+@rem Parse ini configuration file
+@rem A variable in ini configuration file, will setting variable by common-ini function.
+:ini-parser
+    if exist %CLI_FILENAME%.ini (
+        for /f "usebackq delims=" %%a in ("%CLI_FILENAME%.ini") do (
+            set ln=%%a
+            if not "x!ln:~0,1!"=="x[" (
+                for /f "tokens=1,2 delims==" %%b in ("!ln!") do (
+                    call :common-ini %%b %%c
+                )
+            )
+        )
+    )
+    goto end
+
+@rem Parse runtime configuration file
+@rem A variable in runtime configuration file, will all setting in global variable, before main action execute.
+:rc-parser
+    set RC_FILENAME=%CLI_FILENAME%.rc
+    if not "%1" == "" (set RC_FILENAME=%1)
+    if exist %RC_FILENAME% (
+        for /f "usebackq delims=" %%a in ("%RC_FILENAME%") do (
+            set ln=%%a
+            if not "x!ln:~0,1!"=="x#" (
+                for /f "tokens=1,2 delims==" %%b in ("!ln!") do (
+                    set %%b=%%c
+                )
+            )
+        )
+    )
+    goto end
+
+@rem ------------------- command-line-interface common args and attribute method -------------------
+
+@rem Common - ini configuration process
+:common-ini
+    set KEY=%1
+    set VALUE=%2
+    if "%KEY%"=="SHELL_DIR" (set CLI_SHELL_DIRECTORY=%CLI_DIRECTORY%%VALUE:/=\%)
+    echo %CLI_SHELL_DIRECTORY%
+
+@rem Common - args process
+:common-args
+    set KEY=%1
+    set VALUE=%2
+    if "%KEY%"=="-h" (set SHOW_HELP=1)
+    if "%KEY%"=="--help" (set SHOW_HELP=1)
+    if "%KEY%"=="--rc" (call :rc-parser %2)
+    goto end
+
+@rem Common - attribute process
+:common-attr
+    set KEY=%1
+    set VALUE=%2
+    if "%KEY%"=="STOP-CLI-PARSER" (set ATTR_STOP_CLI_PARSER=1)
+    goto end
+
 @rem ------------------- Main method -------------------
 
 :cli
     goto cli-help
+    goto end
 
 :cli-args
     set COMMON_ARGS_KEY=%1
     set COMMON_ARGS_VALUE=%2
-    if "%COMMON_ARGS_KEY%"=="--rpc" (set PROJECT_ENV=rpc)
+    if "%COMMON_ARGS_KEY%"=="--prod" (set PROJECT_ENV=prod)
     goto end
 
 :cli-help
     echo This is a Command Line Interface with project %PROJECT_NAME%
-    echo If not input any command, at default will show HELP
     echo.
     echo Options:
     echo      --help, -h        Show more information with CLI.
-    echo      --rpc             Setting project environment with "RPC", default is "CLI"
-    echo.
-    echo Command:
-    echo      dev               Startup and into container for develop algorithm.
-    echo      into              Going to container.
-    echo      pack              Package docker image with algorithm.
-    echo      run               Run package image.
-    echo      ls                List all algorithm in application.
-    echo      exec              Execute algorithm.
-    echo.
-    echo Run 'cli [COMMAND] --help' for more information on a command.
+    echo      --rc              Setting CLI rc file ( Default %CLI_FILENAME%.rc )
+    call %CLI_SHELL_DIRECTORY%\utils\tools.bat command-description
     goto end
 
 @rem ------------------- Common Command method -------------------
-
-@rem ------------------- Command "dev" method -------------------
-
-:cli-dev
-    echo ^> Startup and into container for develop algorithm
-    @rem build image
-    cd ./conf/docker/cgi
-    docker build  --target %PROJECT_ENV% -t asa.%PROJECT_NAME%:%PROJECT_ENV% .
-    cd %CLI_DIRECTORY%
-
-    @rem create cache
-    IF NOT EXIST cache (
-        mkdir cache
-    )
-
-    @rem execute container
-    docker rm -f asa-%PROJECT_NAME%
-    docker run -d ^
-        -v %cd%\cache\data:/data ^
-        -v %cd%\conf\docker\cgi\cli:/usr/local/src/asa ^
-        -v %cd%\conf\docker\cgi\rpc\nginx\html:/usr/share/nginx/html ^
-        -v %cd%\conf\docker\cgi\rpc\nginx\cgi:/usr/share/nginx/cgi ^
-        -v %cd%\task:/task ^
-        -v %cd%\app:/app ^
-        -p 8080:80 ^
-        --name asa-%PROJECT_NAME% ^
-        asa.%PROJECT_NAME%:%PROJECT_ENV%
-
-    @rem into container
-    docker exec -ti asa-%PROJECT_NAME% bash
-    goto end
-
-:cli-dev-args
-    goto end
-
-:cli-dev-help
-    echo This is a Command Line Interface with project %PROJECT_NAME%
-    echo Startup and into container for develop algorithm.
-    echo.
-    echo Options:
-    echo      --help, -h        Show more information with UP Command.
-    goto end
-
-@rem ------------------- Command "into" method -------------------
-
-:cli-into
-    @rem into container
-    docker exec -ti asa-%PROJECT_NAME% bash
-    goto end
-
-:cli-into-args
-    goto end
-
-:cli-into-help
-    echo This is a Command Line Interface with project %PROJECT_NAME%
-    echo Going to container asa-%PROJECT_NAME%.
-    echo.
-    echo Options:
-    echo      --help, -h        Show more information with UP Command.
-    goto end
-
-@rem ------------------- Command "pack" method -------------------
-
-:cli-pack
-    echo ^> Package docker image with algorithm
-    @rem create cache
-    IF NOT EXIST cache (
-        mkdir cache
-    )
-    IF NOT EXIST cache\image (
-        mkdir cache\image
-    )
-    IF EXIST cache\pack (
-        rd /S /Q cache\pack
-    )
-    mkdir cache\pack\app
-
-    @rem build base image
-    set PROJECT_ENV=rpc
-    cd ./conf/docker
-    docker build -t asa.%PROJECT_NAME%:%PROJECT_ENV% -f Dockerfile.%PROJECT_ENV% .
-    cd %CLI_DIRECTORY%
-
-    @rem copy dockerfile and soruce code
-    copy conf\docker\Dockerfile.pack cache\pack\Dockerfile
-    xcopy /Y /S app cache\pack\app
-
-    @rem build pack image
-    cd cache\pack
-    docker build ^
-      -t asa.%PROJECT_NAME%:latest ^
-      --build-arg PACK_PROJECT=%PROJECT_NAME% ^
-      --build-arg PACK_ENV=%PROJECT_ENV% ^
-      .
-    cd %CLI_DIRECTORY%
-
-    @rem save image
-    docker save --output cache\image\asa.%PROJECT_NAME%.tar asa.%PROJECT_NAME%:latest
-    goto end
-
-:cli-pack-args
-    goto end
-
-:cli-pack-help
-    echo This is a Command Line Interface with project %PROJECT_NAME%
-    echo Package docker image with algorithm.
-    echo.
-    echo Options:
-    echo      --help, -h        Show more information with UP Command.
-    goto end
-
-
-@rem ------------------- Command "run" method -------------------
-
-:cli-run
-    echo ^> Run package image
-    @rem If image exist, then load image
-    IF EXIST cache\image\asa.%PROJECT_NAME%.tar (
-        cd cache\image
-        docker load --input asa.%PROJECT_NAME%.tar
-        cd %CLI_DIRECTORY%
-    )
-
-    @rem execute package image
-    docker rm -f asa-%PROJECT_NAME%
-    docker run -d --rm ^
-        -v %cd%\cache\data:/data ^
-        -p 80:80 ^
-        --name asa-%PROJECT_NAME% ^
-        asa.%PROJECT_NAME%:latest
-    goto end
-
-:cli-run-args
-    goto end
-
-:cli-run-help
-    echo This is a Command Line Interface with project %PROJECT_NAME%
-    echo Run package image.
-    echo.
-    echo Options:
-    echo      --help, -h        Show more information with UP Command.
-    goto end
-
-@rem ------------------- Command "ls" method -------------------
-
-:cli-ls
-    @rem Call ASA list command
-    docker exec -ti asa-%PROJECT_NAME% bash -c "asa ls"
-    goto end
-
-:cli-ls-args
-    goto end
-
-:cli-ls-help
-    echo This is a Command Line Interface with project %PROJECT_NAME%
-    echo List all algorithm in application.
-    echo.
-    echo Options:
-    echo      --help, -h        Show more information with UP Command.
-    goto end
-
-@rem ------------------- Command "exec" method -------------------
-
-:cli-exec
-    @rem If execute command exist, then execute cli with command
-    IF defined ASA_COMMAND (
-        @rem Parser command "_" character to " " character.
-        docker exec -ti asa-%PROJECT_NAME% bash -c "asa exec %ASA_COMMAND:_= %"
-    ) else (
-        echo ^> Execute : command was not assign
-    )
-    goto end
-
-:cli-exec-args
-    set COMMON_ARGS_KEY=%1
-    set COMMON_ARGS_VALUE=%2
-    if "%COMMON_ARGS_KEY%"=="-c" (set ASA_COMMAND=%COMMON_ARGS_VALUE%)
-    goto end
-
-:cli-exec-help
-    echo This is a Command Line Interface with project %PROJECT_NAME%
-    echo Execute algorithm.
-    echo.
-    echo Options:
-    echo      --help, -h        Show more information with UP Command.
-    echo      -c                Execute algorithm string, e.g -c=demo_param1_param2.
-    goto end
 
 @rem ------------------- End method-------------------
 

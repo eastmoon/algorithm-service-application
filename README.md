@@ -26,7 +26,7 @@
 使用此命令會啟動容器並進入，以此設計命令介面內容與演算法內容
 
 ```
-asa.bat [--rpc] dev
+asa.bat dev [--rpc]
 ```
 > ```--rpc``` 開發容器具有 RPC + CLI 功能，若未指定僅有 CLI 功能
 
@@ -53,10 +53,10 @@ asa.bat pack
 
 #### 服務執行
 
-使用此命應會將映像檔匯入 Docker 並啟用容器
+服務封裝後，會存在於 ```cache/package``` 目錄下，可至此目錄並執行下命令將映像檔匯入 Docker 並啟用容器
 
 ```
-asa.bat run
+run.bat
 ```
 
 #### 執行服務的命令介面
@@ -70,9 +70,8 @@ asa.bat ls
 使用此命令對啟用容器執行指定的演算法
 
 ```
-asa.bat exec -c="command"
+asa.bat exec <algorithm> <parameter-1> ... <parameter-N>
 ```
-> 若命令間有空白請用 "_" 替代，如 ```asa.bat exec -c="command_param1_parame2"
 
 ## 演算法執行
 
