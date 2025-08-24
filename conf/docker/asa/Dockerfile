@@ -28,8 +28,8 @@ WORKDIR /app
 ENTRYPOINT ["tail"]
 CMD ["-f","/dev/null"]
 
-# Step : Remote Procedure Call
-FROM cli AS rpc
+# Step : Common Gateway Interface
+FROM cli AS cgi
 
 # Install nginx
 RUN apt-get install -y \
@@ -39,14 +39,24 @@ RUN apt-get install -y \
 # Install RPC
 ENV NGINX_MAX_CGI_SOCK=5
 ENV NGINX_MAX_CLIMQ_SOCK=5
-ADD ./rpc/docker-entrypoint.sh /docker-entrypoint.sh
-ADD ./rpc/docker-entrypoint.d /docker-entrypoint.d
-ADD ./rpc/nginx/default.conf /etc/nginx/conf.d/default.conf
-ADD ./rpc/nginx/html /usr/share/nginx/html
-ADD ./rpc/nginx/cgi /usr/share/nginx/cgi
+ADD ./cgi/docker-entrypoint.sh /docker-entrypoint.sh
+ADD ./cgi/docker-entrypoint.d /docker-entrypoint.d
+ADD ./cgi/nginx/default.conf /etc/nginx/conf.d/default.conf
+ADD ./cgi/nginx/html /usr/share/nginx/html
+ADD ./cgi/nginx/cgi /usr/share/nginx/cgi
 RUN chmod +rx /docker-entrypoint.sh
 
 # Setting
 WORKDIR /app
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]
+
+# Step : Python FastAPI
+FROM cli AS api
+
+# Install FastAPI
+RUN pip install \
+    fastapi
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["apiserver"]

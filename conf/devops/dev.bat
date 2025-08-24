@@ -13,8 +13,8 @@ goto end
 :action-prepare
     echo ^> Startup and into container for develop algorithm
     @rem build image
-    cd ./conf/docker/cgi
-    docker build  --target %PROJECT_ENV% -t asa.%PROJECT_NAME%:%PROJECT_ENV% .
+    cd ./conf/docker/asa
+    docker build --target %PROJECT_ENV% -t asa.%PROJECT_NAME%:%PROJECT_ENV% .
     cd %CLI_DIRECTORY%
 
     @rem create cache
@@ -48,9 +48,9 @@ goto end
             @rem execute container
             docker run -d ^
                 -v %cd%\cache\data:/data ^
-                -v %cd%\conf\docker\cgi\cli:/usr/local/src/asa ^
-                -v %cd%\conf\docker\cgi\rpc\nginx\html:/usr/share/nginx/html ^
-                -v %cd%\conf\docker\cgi\rpc\nginx\cgi:/usr/share/nginx/cgi ^
+                -v %cd%\conf\docker\asa\cli:/usr/local/src/asa ^
+                -v %cd%\conf\docker\asa\cgi\nginx\html:/usr/share/nginx/html ^
+                -v %cd%\conf\docker\asa\cgi\nginx\cgi:/usr/share/nginx/cgi ^
                 -v %cd%\task:/task ^
                 -v %cd%\app:/app ^
                 -p 8080:80 ^
@@ -63,7 +63,7 @@ goto end
 :args
     set COMMON_ARGS_KEY=%1
     set COMMON_ARGS_VALUE=%2
-    if "%COMMON_ARGS_KEY%"=="--rpc" (set PROJECT_ENV=rpc)
+    if "%COMMON_ARGS_KEY%"=="--cgi" (set PROJECT_ENV=cgi)
     if "%COMMON_ARGS_KEY%"=="--stop" (set TARGET_PROJECT_STOP=true)
     if "%COMMON_ARGS_KEY%"=="--into" (set TARGET_PROJECT_COMMAND=bash)
     goto end
@@ -78,7 +78,8 @@ goto end
     echo.
     echo Options:
     echo      --help, -h        Show more information with '%~n0' command.
-    echo      --rpc             Setting project environment with "RPC", default is "CLI"
+    echo      --cgi             Setting project environment with "CGI", default is "CLI"
+    echo      --api             Setting project environment with "API", default is "CLI"
     echo      --into            Into container when it is at detach mode.
     echo      --stop            Stop container if dev-server was on work.
     call %CLI_SHELL_DIRECTORY%\utils\tools.bat command-description %~n0
