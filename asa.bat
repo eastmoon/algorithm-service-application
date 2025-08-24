@@ -144,8 +144,8 @@ goto end
 :cli-dev
     echo ^> Startup and into container for develop algorithm
     @rem build image
-    cd ./conf/docker
-    docker build -t asa.%PROJECT_NAME%:%PROJECT_ENV% -f Dockerfile.%PROJECT_ENV% .
+    cd ./conf/docker/cgi
+    docker build  --target %PROJECT_ENV% -t asa.%PROJECT_NAME%:%PROJECT_ENV% .
     cd %CLI_DIRECTORY%
 
     @rem create cache
@@ -155,11 +155,11 @@ goto end
 
     @rem execute container
     docker rm -f asa-%PROJECT_NAME%
-    docker run -d --rm ^
+    docker run -d ^
         -v %cd%\cache\data:/data ^
-        -v %cd%\conf\docker\cli:/usr/local/src/asa ^
-        -v %cd%\conf\docker\rpc\nginx\html:/usr/share/nginx/html ^
-        -v %cd%\conf\docker\rpc\nginx\cgi:/usr/share/nginx/cgi ^
+        -v %cd%\conf\docker\cgi\cli:/usr/local/src/asa ^
+        -v %cd%\conf\docker\cgi\rpc\nginx\html:/usr/share/nginx/html ^
+        -v %cd%\conf\docker\cgi\rpc\nginx\cgi:/usr/share/nginx/cgi ^
         -v %cd%\task:/task ^
         -v %cd%\app:/app ^
         -p 8080:80 ^
