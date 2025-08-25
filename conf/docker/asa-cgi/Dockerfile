@@ -50,19 +50,3 @@ RUN chmod +rx /docker-entrypoint.sh
 WORKDIR /app
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]
-
-# Step : Python FastAPI
-FROM cli AS api
-
-# Install FastAPI
-RUN pip install \
-    fastapi \
-    uvicorn[standard]
-
-# Install API server
-ADD ./api/docker-entrypoint.sh /docker-entrypoint.sh
-ADD ./api/server /usr/local/fastapi
-RUN chmod +rx /docker-entrypoint.sh
-
-ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["apiserver"]

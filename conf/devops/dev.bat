@@ -13,7 +13,7 @@ goto end
 :action-prepare
     echo ^> Startup and into container for develop algorithm
     @rem build image
-    cd ./conf/docker/asa
+    cd ./conf/docker/asa-%PROJECT_ENV%
     docker build --target %PROJECT_ENV% -t asa.%PROJECT_NAME%:%PROJECT_ENV% .
     cd %CLI_DIRECTORY%
 
@@ -49,8 +49,8 @@ goto end
             if "%PROJECT_ENV%"=="api" (
                 docker run -d ^
                     -v %cd%\cache\data:/data ^
-                    -v %cd%\conf\docker\asa\cli:/usr/local/src/asa ^
-                    -v %cd%\conf\docker\asa\api\server:/usr/local/fastapi ^
+                    -v %cd%\conf\docker\asa-api\cli:/usr/local/src/asa ^
+                    -v %cd%\conf\docker\asa-api\api\server:/usr/local/fastapi ^
                     -v %cd%\task:/task ^
                     -v %cd%\app:/app ^
                     -p 8080:80 ^
@@ -59,9 +59,9 @@ goto end
             ) else (
                 docker run -d ^
                     -v %cd%\cache\data:/data ^
-                    -v %cd%\conf\docker\asa\cli:/usr/local/src/asa ^
-                    -v %cd%\conf\docker\asa\cgi\nginx\html:/usr/share/nginx/html ^
-                    -v %cd%\conf\docker\asa\cgi\nginx\cgi:/usr/share/nginx/cgi ^
+                    -v %cd%\conf\docker\asa-cgi\cli:/usr/local/src/asa ^
+                    -v %cd%\conf\docker\asa-cgi\cgi\nginx\html:/usr/share/nginx/html ^
+                    -v %cd%\conf\docker\asa-cgi\cgi\nginx\cgi:/usr/share/nginx/cgi ^
                     -v %cd%\task:/task ^
                     -v %cd%\app:/app ^
                     -p 8080:80 ^
