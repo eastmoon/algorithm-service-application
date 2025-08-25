@@ -6,7 +6,6 @@ import types
 import argparse
 
 # Declare variable
-cli = argparse.ArgumentParser()
 
 # Declare function
 def list_package_scripts(package_path):
@@ -20,7 +19,7 @@ def list_package_scripts(package_path):
 def commands(parser, command_name="commands"):
     """Import all command defined within a given package name."""
     subparser = parser.add_subparsers(title=command_name)
-    package_directory = f"{os.getcwd()}/{command_name}"
+    package_directory = f"{os.environ['PYTHON_CLI_DIR']}/{command_name}"
     if os.path.exists(package_directory):
         all_scripts = list_package_scripts(package_directory)
         for script in all_scripts:
@@ -30,19 +29,20 @@ def commands(parser, command_name="commands"):
 
 def conf(parser):
     ## command description
-    parser.prog=os.environ['PYTHON_CLI_NAME']
+    if 'PYTHON_CLI_NAME' in os.environ: parser.prog=os.environ['PYTHON_CLI_NAME']
     parser.description='This is a command line interface for algorithm service project.'
     ## command options and description
     ## command process function
     parser.set_defaults(help=parser.print_help)
 
+# Setting command-line interface
+if 'PYTHON_CLI_DIR' not in os.environ: os.environ['PYTHON_CLI_DIR']=os.getcwd()
+cli = argparse.ArgumentParser()
+conf(cli)
+commands(cli)
+
 # Script entrypoint
 if __name__ == '__main__':
-    # Setting command-line interface
-    cli = argparse.ArgumentParser()
-    conf(cli)
-    commands(cli)
-
     # Retrieve argument with argparse
     args = cli.parse_args()
     if hasattr(args, "func"):

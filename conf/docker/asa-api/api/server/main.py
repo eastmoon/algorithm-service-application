@@ -3,11 +3,11 @@ from fastapi import FastAPI
 from fastapi import __version__ as fastapi_version
 
 # Import server modules
-from routes import demo
+from routes import asa
 
 # Configuration server
 app = FastAPI()
-app.mount("/sub", demo.module)
+app.mount("/asa", asa.module)
 
 # Configuration server root route
 @app.get("/")
