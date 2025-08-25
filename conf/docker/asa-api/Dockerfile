@@ -17,11 +17,15 @@ RUN pip install \
 # Step : Command line interface
 FROM base AS cli
 # Install CLI
-ADD ./cli /usr/local/src/asa
-RUN \
-    echo "bash /usr/local/src/asa/cli.sh \${@}" | tee -a /bin/asa > /dev/null && \
-    chmod 755 /bin/asa && \
-    chmod +x /usr/local/src/asa/cli.sh
+ADD ./cli /usr/local/asa
+
+RUN cat <<EOF > /bin/asa
+CLI_FILE=\${BASH_SOURCE##*/}
+export PYTHON_CLI_NAME=\${CLI_FILE%.*}
+cd /usr/local/asa
+python main.py \${@}
+EOF
+RUN chmod +x /bin/asa
 
 # Setting
 WORKDIR /app
@@ -41,5 +45,6 @@ ADD ./api/docker-entrypoint.sh /docker-entrypoint.sh
 ADD ./api/server /usr/local/fastapi
 RUN chmod +rx /docker-entrypoint.sh
 
+# Setting
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["apiserver"]
