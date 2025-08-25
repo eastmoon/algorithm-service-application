@@ -17,11 +17,11 @@ RUN pip install \
 # Step : Command line interface
 FROM base AS cli
 # Install CLI
-ADD ./cli /usr/local/src/asa
+ADD ./cli /usr/local/asa
 RUN \
-    echo "bash /usr/local/src/asa/cli.sh \${@}" | tee -a /bin/asa > /dev/null && \
+    echo "bash /usr/local/asa/cli.sh \${@}" | tee -a /bin/asa > /dev/null && \
     chmod 755 /bin/asa && \
-    chmod +x /usr/local/src/asa/cli.sh
+    chmod +x /usr/local/asa/cli.sh
 
 # Setting
 WORKDIR /app
