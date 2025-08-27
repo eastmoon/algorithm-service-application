@@ -37,8 +37,10 @@ def list_all_algorithm():
     captured_string = print2string(args.func, args)
     return f"{captured_string}"
 
-@module.get("/exec", response_class=PlainTextResponse)
-def execute_algorithm():
-    args = main.cli.parse_args(["exec"])
+@module.get("/exec/{algorithm_info:path}", response_class=PlainTextResponse)
+def execute_algorithm(algorithm_info: str):
+    cmd = ["exec"]
+    cmd = cmd + algorithm_info.split("/")
+    args = main.cli.parse_args(cmd)
     captured_string = print2string(args.func, args)
     return f"{captured_string}"
